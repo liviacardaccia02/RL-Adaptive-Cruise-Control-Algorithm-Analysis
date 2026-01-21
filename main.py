@@ -168,7 +168,7 @@ def train_single_agent(agent_name, env, discretizer, cfg):
         
         if (episode + 1) % 500 == 0:
             avg = np.mean(rewards_history[-100:])
-            print(f"Ep {episode+1}/{n_episodes} | Avg Reward: {avg:.2f} | Eps: {agent.epsilon:.3f}")
+            print(f"Episode {episode+1:5d}/{n_episodes} | Avg Reward: {avg:7.2f} | Epsilon: {agent.epsilon:5.3f}")
 
     # Save Agent-Specific Plots
     base_dir = os.path.join(cfg['output_dir'], agent_name.replace(" ", "_").lower())
