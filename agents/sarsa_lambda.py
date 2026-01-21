@@ -24,7 +24,7 @@ class SarsaLambdaAgent:
         # Initialize Eligibility Trace table (same shape as Q)
         self.e_table = np.zeros((n_states, n_actions))
 
-    def get_action(self, state_idx):
+    def choose_action(self, state_idx):
         """
         Epsilon-greedy policy:
         With probability epsilon, choose random action.
