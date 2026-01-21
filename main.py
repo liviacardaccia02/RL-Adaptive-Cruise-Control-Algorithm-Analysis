@@ -39,7 +39,9 @@ CONFIG = {
         'n_episodes': 10000, 
         'max_steps': 400
     },
-    'output_dir': 'visualizations/comparison_results_tuned',
+    
+    # STATIC Base Output Directory
+    'base_output_dir': 'visualizations/comparison_results_tuned',
 
     # --- AGENT INDIVIDUAL CONFIGURATIONS ---
     'Q-Learning': {
@@ -66,6 +68,28 @@ CONFIG = {
     }
 }
 
+def get_next_run_id(base_dir):
+    """
+    Determines the next Run ID by checking existing comparison plots.
+    Returns 1 if no previous run is found.
+    """
+    ensure_dir(base_dir)
+    # We look for files named 'comparison_learning_curve_N.png'
+    files = [f for f in os.listdir(base_dir) if f.startswith("comparison_learning_curve_") and f.endswith(".png")]
+    
+    ids = []
+    for f in files:
+        try:
+            # Extract number: "comparison_learning_curve_5.png" -> "5"
+            part = f.replace("comparison_learning_curve_", "").replace(".png", "")
+            ids.append(int(part))
+        except ValueError:
+            pass
+    
+    if not ids:
+        return 1
+    return max(ids) + 1
+
 def get_agent(agent_name, n_states, n_actions, cfg):
     """Factory to instantiate the correct agent with its specific config."""
     agent_cfg = cfg[agent_name]
@@ -91,9 +115,9 @@ def get_agent(agent_name, n_states, n_actions, cfg):
     else:
         raise ValueError(f"Unknown Agent: {agent_name}")
 
-def train_single_agent(agent_name, env, discretizer, cfg):
+def train_single_agent(agent_name, env, discretizer, cfg, run_id):
     """Executes the training loop for a single agent."""
-    print(f"\n--- Starting Training: {agent_name} ---")
+    print(f"\n--- Starting Training: {agent_name} (Run #{run_id}) ---")
     
     # Load specific configs
     global_cfg = cfg['global_training']
@@ -121,7 +145,6 @@ def train_single_agent(agent_name, env, discretizer, cfg):
             agent.reset_traces()
 
         # Choose First Action
-        # (Unified call: we ensured all agents have choose_action or compatible logic)
         if hasattr(agent, 'choose_action'):
             action = agent.choose_action(state_idx)
         elif hasattr(agent, 'get_action'):
@@ -168,31 +191,38 @@ def train_single_agent(agent_name, env, discretizer, cfg):
         
         if (episode + 1) % 500 == 0:
             avg = np.mean(rewards_history[-100:])
-            print(f"Episode {episode+1:5d}/{n_episodes} | Avg Reward: {avg:7.2f} | Epsilon: {agent.epsilon:5.3f}")
+            # Formatted print for alignment
+            print(f"Episode {episode+1:5d}/{n_episodes} | Avg Reward (last 100): {avg:7.2f} | Epsilon: {agent.epsilon:5.3f}")
 
-    # Save Agent-Specific Plots
-    base_dir = os.path.join(cfg['output_dir'], agent_name.replace(" ", "_").lower())
-    ensure_dir(base_dir)
+    # Save Agent-Specific Plots with Numbered Filenames
+    # Structure: base_dir / agent_name / policy_N.png
+    agent_dir = os.path.join(cfg['base_output_dir'], agent_name.replace(" ", "_").lower())
+    ensure_dir(agent_dir)
     
     # Policy Heatmap (Greedy)
     prev_eps = agent.epsilon
     agent.epsilon = 0.0
     plot_policy_heatmap(agent, discretizer, 
-                        title=f"{agent_name} Policy", 
-                        save_path=os.path.join(base_dir, "policy.png"))
+                        title=f"{agent_name} Policy (Run {run_id})", 
+                        save_path=os.path.join(agent_dir, f"policy_{run_id}.png"))
     agent.epsilon = prev_eps
     
     # Value Heatmap (if supported)
     if hasattr(agent, 'q_table'):
          plot_value_heatmap(agent, discretizer, 
-                            title=f"{agent_name} Value Function", 
-                            save_path=os.path.join(base_dir, "value_function.png"))
+                            title=f"{agent_name} Value Function (Run {run_id})", 
+                            save_path=os.path.join(agent_dir, f"value_function_{run_id}.png"))
 
     return rewards_history
 
 def main():
-    # Setup
-    ensure_dir(CONFIG['output_dir'])
+    # 0. Setup & Reproducibility
+    # np.random.seed(42)  # Uncomment for fixed results
+    
+    # Determine the Run ID for this session (Synchronized across all agents)
+    run_id = get_next_run_id(CONFIG['base_output_dir'])
+    print(f"--- Global Run ID: {run_id} ---")
+    print(f"--- Saving results to: {CONFIG['base_output_dir']} ---")
     
     # Shared Environment & Discretizer
     env = ACCEnvironment(CONFIG['env'])
@@ -203,17 +233,18 @@ def main():
     agents_to_train = ["Q-Learning", "SARSA", "SARSA(λ)"]
     
     for name in agents_to_train:
-        rewards = train_single_agent(name, env, discretizer, CONFIG)
+        # Pass the run_id to number the files consistently
+        rewards = train_single_agent(name, env, discretizer, CONFIG, run_id)
         results[name] = rewards
     
-    # Comparison Plot
+    # Comparison Plot (Numbered)
     print("\n--- Generating Comparison Plot ---")
     plot_learning_curve(results, 
-                        save_path=os.path.join(CONFIG['output_dir'], "comparison_learning_curve.png"),
+                        save_path=os.path.join(CONFIG['base_output_dir'], f"comparison_learning_curve_{run_id}.png"),
                         window=100,
-                        title="ACC Algorithm Comparison")
+                        title=f"ACC Algorithms Performance Comparison (Run {run_id})")
 
-    print(f"Done! Results saved to {CONFIG['output_dir']}")
+    print(f"Done! Results saved.")
 
 if __name__ == "__main__":
     main()
