@@ -41,26 +41,24 @@ class SarsaLambdaAgent:
 
     def update(self, state, action, reward, next_state, next_action):
         """
-        The core Sarsa(lambda) update rule.
+        Sarsa(lambda) update rule with Replacing Traces.
         """
         # 1. Calculate TD Error (delta)
-        # delta = R + gamma * Q(S', A') - Q(S, A)
         current_q = self.q_table[state, action]
         next_q = self.q_table[next_state, next_action]
         delta = reward + self.gamma * next_q - current_q
 
-        # 2. Update Eligibility Trace for the CURRENT state-action pair
-        # Accumulating trace: add 1 to the current visited state
-        self.e_table[state, action] += 1
+        # 2. Update Eligibility Traces (Replacing Traces)
+        # First, decay ALL traces
+        self.e_table *= (self.gamma * self.lambd)
+        
+        # Then, set the current state's trace to 1 (Replace, don't accumulate)
+        # This is more stable for control problems where states are revisited often
+        self.e_table[state, action] = 1.0
 
-        # 3. Update Q-values and Decay Traces for ALL states
-        # (Vectorized operation for efficiency)
-
+        # 3. Update Q-values
         # Q(s,a) <- Q(s,a) + alpha * delta * E(s,a)
         self.q_table += self.alpha * delta * self.e_table
-
-        # E(s,a) <- gamma * lambda * E(s,a)
-        self.e_table *= self.gamma * self.lambd
 
     def reset_traces(self):
         """
