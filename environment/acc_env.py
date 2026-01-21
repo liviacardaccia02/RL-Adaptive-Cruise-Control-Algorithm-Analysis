@@ -44,7 +44,8 @@ class ACCEnvironment:
             reward (float): The reward obtained from taking the action.
             done (bool): Whether the episode has ended.
         """
-
+        
+        # 1. Action & Physics
         acceleration = self.actions[action_index]
 
         # Update ego vehicle speed
@@ -55,43 +56,40 @@ class ACCEnvironment:
         self.v_leader = max(0.0, self.v_leader + leader_accel * self.time_step)
 
         # Update distance to leader
-        # d_new = d_old + (v_leader - v_ego) * dt
         vrel = self.v_leader - self.v_ego
         self.distance += vrel * self.time_step
         
         # Update state
         self.state = np.array([self.distance, vrel], dtype=np.float32)
         
-        # Calculate reward
+        # 2. Dense Reward Calculation
         reward = 0
         done = False
         info = {}
+        
+        # Normalize distance error (0.0 to ~1.0)
+        # We want to be at target_distance.
+        dist_error = abs(self.distance - self.target_distance) / self.max_distance
+        
+        # Base Reward: Negative error (Higher is better, max 0)
+        # This guides the agent at every single step, not just at the end.
+        reward = -dist_error
 
-        # 1. Crash
-        if self.distance <= 1.0:
-            reward = -1000
+        # Critical Events
+        if self.distance <= 0: # Crash
+            reward = -10.0 # Large penalty relative to step reward
             done = True
             info['msg'] = "CRASH"
             
-        # 2. Leader Lost
-        elif self.distance >= self.max_distance:
-            reward = -200
+        elif self.distance >= self.max_distance: # Lost Leader
+            reward = -10.0
             done = True
             info['msg'] = "LOST_LEADER"
             
-        # 3. Normal Driving
         else:
-            # Goal: Maintain safe distance (+/- 5m)
-            if abs(self.distance - self.target_distance) < 2.0:
-                reward += 1.0 # Optimal distance
-            elif abs(self.distance - self.target_distance) <= 5.0:
-                reward += 0.5 # Acceptable distance
-            
-            # Penalize being too close or too far
-            if self.distance < self.target_distance - 5.0 or self.distance > self.target_distance + 5.0:
-                reward -= 0.5
-            # Penalize extreme actions
-            if action_index == 0 or action_index == (len(self.actions) - 1):
-                reward -= 0.5
-
+            # Bonus: If we are very close to target (within 5% error), give a boost
+            # This encourages the agent to "stick" to the target
+            if dist_error < 0.05: 
+                reward += 0.5
+                
         return self.state, reward, done, info
