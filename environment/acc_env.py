@@ -69,13 +69,13 @@ class ACCEnvironment:
 
         # 1. Crash
         if self.distance <= 1.0:
-            reward = -100
+            reward = -1000
             done = True
             info['msg'] = "CRASH"
             
         # 2. Leader Lost
         elif self.distance >= self.max_distance:
-            reward = -50
+            reward = -200
             done = True
             info['msg'] = "LOST_LEADER"
             
