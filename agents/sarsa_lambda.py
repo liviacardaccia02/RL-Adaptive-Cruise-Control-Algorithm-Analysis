@@ -19,10 +19,10 @@ class SarsaLambdaAgent:
         self.lambd = lambd  # The 'lambda' in Sarsa(lambda)
 
         # Initialize Q-table with zeros
-        self.q_table = np.zeros((n_states, n_actions))
+        self.q_table = np.zeros((n_states, n_actions), dtype=np.float32)
 
         # Initialize Eligibility Trace table (same shape as Q)
-        self.e_table = np.zeros((n_states, n_actions))
+        self.e_table = np.zeros((n_states, n_actions), dtype=np.float32)
 
     def choose_action(self, state_idx):
         """
