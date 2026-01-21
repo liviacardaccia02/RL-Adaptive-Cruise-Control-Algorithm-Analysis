@@ -14,20 +14,20 @@ class Discretizer:
 
     def get_state_index(self, distance, relative_velocity):
         """
-        Returns a single integer index (0 to 399) representing the state.
+        Maps continuous state to discrete index with boundary safety.
         """
-        # np.digitize returns which "bin" the value falls into
-        # We subtract 1 to make it 0-indexed
+        # 1. Get indices (np.digitize returns 1..N usually)
         d_idx = np.digitize(distance, self.dist_bins) - 1
         v_idx = np.digitize(relative_velocity, self.vel_bins) - 1
 
-        # Clamp values to ensure they stay within bounds (e.g. if dist > 100)
-        d_idx = max(0, min(len(self.dist_bins) - 1, d_idx))
-        v_idx = max(0, min(len(self.vel_bins) - 1, v_idx))
+        # 2. Safety Clamp
+        # Ensures index is between 0 and (num_buckets - 1)
+        d_idx = max(0, min(d_idx, len(self.dist_bins) - 2))
+        v_idx = max(0, min(v_idx, len(self.vel_bins) - 2))
 
-        # Flatten 2D grid to 1D index:  row * width + col
-        state_idx = d_idx * len(self.vel_bins) + v_idx
-        return state_idx
+        # 3. Flatten mapping
+        # state_idx = row * n_cols + col
+        return d_idx * (len(self.vel_bins) - 1) + v_idx
 
     def get_num_states(self):
         return self.n_states
