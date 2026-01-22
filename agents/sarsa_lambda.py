@@ -16,7 +16,7 @@ class SarsaLambdaAgent:
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
-        self.lambd = lambd  # The 'lambda' in Sarsa(lambda)
+        self.lambd = lambd  
 
         # Initialize Q-table with zeros
         self.q_table = np.zeros((n_states, n_actions), dtype=np.float32)
