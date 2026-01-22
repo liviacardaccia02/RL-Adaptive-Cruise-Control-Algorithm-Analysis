@@ -43,7 +43,7 @@ class SarsaAgent:
         if np.random.uniform(0, 1) < self.epsilon:
             return np.random.randint(0, self.n_actions)
         
-        # Exploitation (con random tie-breaking per evitare bias)
+        # Exploitation
         max_value = np.max(self.q_table[state_idx])
         best_actions = np.where(self.q_table[state_idx] == max_value)[0]
         return np.random.choice(best_actions)
