@@ -48,7 +48,7 @@ def get_next_run_id(base_dir):
     Returns:
         int: Next available run ID.
     """
-    ensure_dir(base_dir)
+    os.makedirs(base_dir, exist_ok=True)
     files = [f for f in os.listdir(base_dir) if f.startswith("comparison_learning_curve_") and f.endswith(".png")]
     ids = []
     for f in files:
@@ -173,7 +173,7 @@ def train_single_agent(agent_name, env, discretizer, cfg, run_id):
 
     # Plotting
     agent_dir = os.path.join(cfg['base_output_dir'], agent_name.replace(" ", "_").lower())
-    ensure_dir(agent_dir)
+    os.makedirs(agent_dir, exist_ok=True)
     
     prev_eps = agent.epsilon
     agent.epsilon = 0.0
@@ -190,7 +190,7 @@ def main():
     print(f"--- Global Run ID: {run_id} ---")
     
     log_dir = CONFIG['log_dir']
-    ensure_dir(log_dir)
+    os.makedirs(log_dir, exist_ok=True)
     log_file_path = os.path.join(log_dir, "kpi_log.csv")
     
     csv_headers = ["Run ID", "Agent", "Episodes", "Avg Reward", "Crash Rate (%)", "Lost Leader Rate (%)", "Survival Rate (%)"]
