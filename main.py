@@ -39,6 +39,15 @@ CONFIG = {
 }
 
 def get_next_run_id(base_dir):
+    """
+    Determines the next run ID based on existing files in the base directory.
+    
+    Args:
+        base_dir (str): Directory where result files are stored.
+
+    Returns:
+        int: Next available run ID.
+    """
     ensure_dir(base_dir)
     files = [f for f in os.listdir(base_dir) if f.startswith("comparison_learning_curve_") and f.endswith(".png")]
     ids = []
@@ -51,6 +60,18 @@ def get_next_run_id(base_dir):
     return max(ids) + 1 if ids else 1
 
 def get_agent(agent_name, n_states, n_actions, cfg):
+    """
+    Factory function to create agents based on name.
+    
+    Args
+        agent_name (str): Name of the agent ("Q-Learning", "SARSA", "SARSA(λ)")
+        n_states (int): Number of discrete states.
+        n_actions (int): Number of discrete actions.
+        cfg (dict): Configuration dictionary with hyperparameters.
+
+    Returns:
+        Instantiated agent object.
+    """
     agent_cfg = cfg[agent_name]
     if agent_name == "Q-Learning":
         return QLearningAgent(n_states, n_actions, alpha=agent_cfg['alpha'], gamma=agent_cfg['gamma'], epsilon=agent_cfg['epsilon_start'])
@@ -62,6 +83,19 @@ def get_agent(agent_name, n_states, n_actions, cfg):
         raise ValueError(f"Unknown Agent: {agent_name}")
 
 def train_single_agent(agent_name, env, discretizer, cfg, run_id):
+    """
+    Trains a single agent and returns rewards history and KPI stats.
+    
+    Args
+        agent_name (str): Name of the agent to train.
+        env (ACCEnvironment): The ACC environment instance.
+        discretizer (Discretizer): Discretizer instance for state mapping.
+        cfg (dict): Configuration dictionary.
+        run_id (int): Unique identifier for the training run.
+
+    Returns:
+        tuple: (rewards_history (list), kpi_stats (dict))
+    """
     print(f"\n--- Starting Training: {agent_name} (Run #{run_id}) ---")
     global_cfg = cfg['global_training']
     agent_cfg = cfg[agent_name]
