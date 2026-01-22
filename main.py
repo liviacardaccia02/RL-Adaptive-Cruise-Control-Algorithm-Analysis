@@ -35,7 +35,7 @@ CONFIG = {
     
     'Q-Learning': { 'alpha': 0.1, 'gamma': 0.95, 'epsilon_start': 1.0, 'epsilon_end': 0.01, 'decay_rate': 0.0005 },
     'SARSA': { 'alpha': 0.1, 'gamma': 0.99, 'epsilon_start': 1.0, 'epsilon_end': 0.01, 'decay_rate': 0.0005 },
-    'SARSA(λ)': { 'alpha': 0.01, 'gamma': 0.99, 'lambda': 0.9, 'epsilon_start': 1.0, 'epsilon_end': 0.01, 'decay_rate': 0.0005 }
+    'SARSA(λ)': { 'alpha': 0.1, 'gamma': 0.99, 'lambda': 0.6, 'epsilon_start': 1.0, 'epsilon_end': 0.01, 'decay_rate': 0.0005 }
 }
 
 def get_next_run_id(base_dir):

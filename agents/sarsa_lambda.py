@@ -1,15 +1,15 @@
 import numpy as np
 
 class SarsaLambdaAgent:
-    def __init__(self, n_states, n_actions, alpha=0.1, gamma=0.9, epsilon=0.1, lambd=0.9):
+    def __init__(self, n_states, n_actions, alpha=0.1, gamma=0.99, epsilon=0.1, lambd=0.6):
         """
         Args:
             n_states: Number of discrete states (400)
             n_actions: Number of available actions (5)
-            alpha: Learning rate
-            gamma: Discount factor
+            alpha: Learning rate (default: 0.1 for faster convergence)
+            gamma: Discount factor (default: 0.99 to match other agents)
             epsilon: Exploration rate
-            lambd: Trace decay factor (0 = SARSA, 1 = Monte Carlo)
+            lambd: Trace decay factor (0 = SARSA, 1 = Monte Carlo; default: 0.6 for stability)
         """
         self.n_states = n_states
         self.n_actions = n_actions
