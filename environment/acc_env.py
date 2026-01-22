@@ -7,19 +7,19 @@ class ACCEnvironment:
         self.config = config
 
         # Configuration parameters
-        self.time_step = config.get('time_step', 0.1)  # seconds
+        self.time_step = config.get('time_step', 0.1)               # seconds
         self.target_distance = config.get('target_distance', 10.0)  # meters
-        self.max_distance = config.get('max_distance', 100.0)  # meters
-        self.min_distance = config.get('min_distance', 5.0)  # meters
+        self.max_distance = config.get('max_distance', 100.0)       # meters
+        self.min_distance = config.get('min_distance', 5.0)         # meters
 
         # Actions [Hard brake, Brake, Maintain, Accelerate, Hard Accelerate]
-        self.actions = config.get('actions', [-5.0, -2.0, 0.0, 2.0, 5.0])  # m/s^2
+        self.actions = config.get('actions', [-3.0, -1.0, 0.0, 1.0, 3.0])  # m/s^2
 
         # State variables
-        self.v_ego = 0.0  # Ego vehicle speed (m/s)
-        self.v_leader = 0.0  # Leader vehicle speed (m/s)
-        self.distance = 0.0  # Actual distance to target vehicle (m)
-        self.state = None  # Current state
+        self.v_ego = 0.0        # Ego vehicle speed (m/s)
+        self.v_leader = 0.0     # Leader vehicle speed (m/s)
+        self.distance = 0.0     # Actual distance to target vehicle (m)
+        self.state = None       # Current state
         
 
     def reset(self):
@@ -75,6 +75,15 @@ class ACCEnvironment:
         # This guides the agent at every single step, not just at the end.
         reward = -dist_error
 
+        # TODO Do we keep this? It lowers the reward scale significantly.
+
+        # Penalize high acceleration/braking slightly to encourage smoothness
+        # Actions are [-3, -1, 0, 1, 3]. 
+        # abs(acceleration) * 0.1 means a cost of 0.3 for hard actions.
+        acceleration = self.actions[action_index]
+        action_cost = abs(acceleration) * 0.1 
+        reward -= action_cost
+
         # Critical Events
         if self.distance <= 0: # Crash
             reward = -10.0 # Large penalty relative to step reward
@@ -90,6 +99,6 @@ class ACCEnvironment:
             # Bonus: If we are very close to target (within 5% error), give a boost
             # This encourages the agent to "stick" to the target
             if dist_error < 0.05: 
-                reward += 0.5
+                reward += 1.0
                 
         return self.state, reward, done, info
