@@ -78,7 +78,7 @@ class ACCEnvironment:
         # Penalize high acceleration/braking slightly to encourage smoothness
         # Actions are [-3, -1, 0, 1, 3]. 
         # abs(acceleration) * 0.1 means a cost of 0.3 for hard actions.
-        acceleration = self.actions[action_index]
+        #acceleration = self.actions[action_index]
         action_cost = abs(acceleration) * 0.1 
         reward -= action_cost
 
