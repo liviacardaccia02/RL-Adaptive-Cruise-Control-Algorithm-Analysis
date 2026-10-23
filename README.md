@@ -1,71 +1,67 @@
 # RL-Based Adaptive Cruise Control Algorithm Analysis
 
-**Final Project of Reinforcement Learning Class | Robotics & Mechatronics Engineering Master's | Polytech Nice-Sophia | Université Côte d’Azur**
+A tabular reinforcement-learning comparison for a simplified **Adaptive Cruise Control (ACC)** simulation. The project compares Q-Learning, SARSA, and SARSA(λ) using a custom stochastic vehicle-following environment.
 
-This repository presents a comparative analysis of various Reinforcement Learning (RL) algorithms applied to the **Adaptive Cruise Control (ACC)** problem. The goal is to train an autonomous agent to maintain a safe distance and optimal speed relative to a leading vehicle in a stochastic environment.
+**Course project:** Reinforcement Learning, Robotics & Mechatronics Engineering Master's, Polytech Nice-Sophia, Université Côte d’Azur.
 
-**Project Participants:**
+## Algorithms and design
 
-* Livia Cardaccia
-* Tytus Felbor
-* Alessandro Negri
+- **Q-Learning** — off-policy temporal-difference control.
+- **SARSA** — on-policy temporal-difference control.
+- **SARSA(λ)** — SARSA with replacing eligibility traces.
+- **ACC environment** — simulates ego and leader speeds, relative distance, discrete acceleration actions, a distance-based reward, and terminal crash/lost-leader events.
+- **State discretization** — maps distance and relative velocity into a finite tabular state space.
+- **Evaluation outputs** — training reward curves, policy/value heatmaps, and a CSV KPI log.
 
----
+The environment is a project-specific Python class with a simple four-value `step()` return (`state, reward, done, info`). It is **not currently a Gymnasium API implementation**.
 
-### 📂 Repository Structure
+## Repository structure
 
-The project is modularized to separate the physical environment from the learning logic:
-
-* **`environment/acc_env.py`**: A custom Gymnasium-compatible environment that simulates the longitudinal dynamics of a vehicle, including distance headway and relative velocity.
-* **`agents/`**: Contains the implementations of various RL strategies:
-* **Q-Learning**: A classic off-policy temporal difference (TD) control algorithm.
-* **SARSA**: An on-policy TD control algorithm focusing on the current policy's actions.
-* **SARSA($\lambda$)**: An eligibility trace-based approach that combines the advantages of TD and Monte Carlo methods.
-
-
-* **`utils/`**: Helper scripts for state-space discretization and performance visualization.
-* **`main.py`**: The central entry point for training agents, running simulations, and comparing convergence metrics.
-
----
-
-### 🚀 Technical Implementation
-
-#### 1. The ACC Environment
-
-The environment models a "following" vehicle and a "leading" vehicle. The state space includes:
-
-* Relative distance (Headway).
-* Velocity of both the follower and the leader.
-* Acceleration/Deceleration actions that impact the follower's kinetic state.
-
-#### 2. Discretization Strategy
-
-Since the agents implemented are tabular-based (Q-Learning, SARSA), the continuous state space of the ACC environment is mapped into discrete bins using the `Discretizer` utility to ensure efficient convergence of the Q-tables.
-
-#### 3. Comparative Benchmarking
-
-The project compares the learning efficiency of **Q-Learning** vs. **SARSA** variants. By analyzing cumulative rewards and collision rates, the project evaluates how on-policy vs. off-policy updates affect the safety-critical nature of adaptive cruise control.
-
----
-
-### 🛠 Installation & Usage
-
-1. **Install Dependencies:**
-```bash
-pip install -r requirements.txt
-
+```text
+agents/
+  q_learning.py
+  sarsa.py
+  sarsa_lambda.py
+environment/
+  acc_env.py
+utils/
+  discretizer.py
+  plotting.py
+main.py
+requirements.txt
 ```
 
+## Setup and run
 
-2. **Run Training & Analysis:**
-Execute the main script to initiate the training loop for the selected agents:
+Python 3.10+ is recommended.
+
 ```bash
+python -m pip install -r requirements.txt
 python main.py
-
 ```
 
+The default configuration in `main.py` trains each algorithm for 10,000 episodes with up to 400 steps per episode. This can take a while; edit `CONFIG['global_training']` to run a smaller experiment while developing.
 
+Results are written under `results/`:
+- `logs/kpi_log.csv` — aggregate KPI rows appended for each run.
+- `comparison_results_tuned/` — learning curves, policy heatmaps, and value heatmaps.
 
-### 📜 License
+## Configuration and interpretation
 
-This project is licensed under the **MIT License**.
+The environment and training parameters are centralized in `CONFIG` in `main.py`. The environment includes stochastic leader acceleration, so outcomes vary between runs. The current script does not set and record a random seed, and the main training routine evaluates each algorithm in a single sequential run rather than reporting multi-seed confidence intervals. Treat comparisons as exploratory, not as statistically conclusive evidence of general algorithm superiority.
+
+The current KPI counters count terminal crash/lost-leader events. Episodes that reach the configured step limit are truncated by the training loop and are not counted as terminal failures.
+
+## Tests
+
+Run the lightweight core tests with:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+These tests cover state-index bounds/coverage and terminal-update behavior. They do not validate convergence or establish that one algorithm is safer or more effective than another.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
