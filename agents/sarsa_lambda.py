@@ -39,14 +39,14 @@ class SarsaLambdaAgent:
             actions_with_max_q = np.where(self.q_table[state_idx] == max_q)[0]
             return np.random.choice(actions_with_max_q)
 
-    def update(self, state, action, reward, next_state, next_action):
+    def update(self, state, action, reward, next_state, next_action, done=False):
         """
         Sarsa(lambda) update rule with Replacing Traces.
         """
         # 1. Calculate TD Error (delta)
         current_q = self.q_table[state, action]
-        next_q = self.q_table[next_state, next_action]
-        delta = reward + self.gamma * next_q - current_q
+        next_q = 0.0 if done else self.q_table[next_state, next_action]
+        delta = reward + (0.0 if done else self.gamma * next_q) - current_q
 
         # 2. Update Eligibility Traces (Replacing Traces)
         # First, decay ALL traces
