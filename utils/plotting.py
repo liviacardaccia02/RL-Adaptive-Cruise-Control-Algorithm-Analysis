@@ -61,8 +61,8 @@ def plot_policy_heatmap(agent, discretizer, title="Policy Heatmap", save_path=No
     """
     Visualizes the best action (Policy) for every state.
     """
-    n_dist = len(discretizer.dist_bins)
-    n_vel = len(discretizer.vel_bins)
+    n_dist = discretizer.dist_buckets
+    n_vel = discretizer.vel_buckets
 
     policy_grid = np.zeros((n_vel, n_dist))
     
@@ -85,8 +85,8 @@ def plot_policy_heatmap(agent, discretizer, title="Policy Heatmap", save_path=No
     
     # Heatmap
     ax = sns.heatmap(policy_grid, cmap="coolwarm", annot=True, fmt=".0f",
-                     xticklabels=np.round(discretizer.dist_bins, 1),
-                     yticklabels=np.round(discretizer.vel_bins, 1),
+                     xticklabels=np.round((discretizer.dist_bins[:-1] + discretizer.dist_bins[1:]) / 2, 1),
+                     yticklabels=np.round((discretizer.vel_bins[:-1] + discretizer.vel_bins[1:]) / 2, 1),
                      cbar_kws={'label': 'Action Index'})
 
     plt.xlabel("Distance to Leader (m)")
@@ -108,8 +108,8 @@ def plot_value_heatmap(agent, discretizer, title="Value Function Heatmap (Max Q)
     Visualizes the Value Function (Max Q-value) for every state.
     Useful to see where the agent feels 'safe' (High values) vs 'danger' (Low values).
     """
-    n_dist = len(discretizer.dist_bins)
-    n_vel = len(discretizer.vel_bins)
+    n_dist = discretizer.dist_buckets
+    n_vel = discretizer.vel_buckets
     
     value_grid = np.zeros((n_vel, n_dist))
     
@@ -121,8 +121,8 @@ def plot_value_heatmap(agent, discretizer, title="Value Function Heatmap (Max Q)
             
     plt.figure(figsize=(10, 8))
     sns.heatmap(value_grid, cmap="viridis", annot=False,
-                xticklabels=np.round(discretizer.dist_bins, 1),
-                yticklabels=np.round(discretizer.vel_bins, 1),
+                xticklabels=np.round((discretizer.dist_bins[:-1] + discretizer.dist_bins[1:]) / 2, 1),
+                yticklabels=np.round((discretizer.vel_bins[:-1] + discretizer.vel_bins[1:]) / 2, 1),
                 cbar_kws={'label': 'Max Q-Value'})
 
     plt.xlabel("Distance to Leader (m)")
