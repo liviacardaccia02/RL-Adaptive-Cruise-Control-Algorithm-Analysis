@@ -141,8 +141,8 @@ def train_single_agent(agent_name, env, discretizer, cfg, run_id):
                 if hasattr(agent, 'choose_action'): next_action = agent.choose_action(next_state_idx)
                 else: next_action = agent.get_action(next_state_idx)
 
-                if agent_name == "SARSA": agent.learn(state_idx, action, reward, next_state_idx, next_action)
-                else: agent.update(state_idx, action, reward, next_state_idx, next_action)
+                if agent_name == "SARSA": agent.learn(state_idx, action, reward, next_state_idx, next_action, done=done)
+                else: agent.update(state_idx, action, reward, next_state_idx, next_action, done=done)
 
                 state_idx = next_state_idx
                 action = next_action
